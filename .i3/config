@@ -11,6 +11,7 @@
 # Please see http://i3wm.org/docs/userguide.html for a complete reference!
 
 set $Terminal lilyterm
+set $browser chromium-browser
 
 set $mod Mod4
 
@@ -29,6 +30,8 @@ floating_modifier $mod
 
 # start a terminal
 bindsym $mod+t exec i3-sensible-terminal
+
+bindsym $mod+b exec $browser
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -74,9 +77,9 @@ bindsym $mod+v split v
 bindsym $mod+f fullscreen
 
 # change container layout (stacked, tabbed, toggle split)
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
-bindsym $mod+e layout toggle split
+#bindsym $mod+s layout stacking
+#bindsym $mod+w layout tabbed
+#bindsym $mod+e layout toggle split
 
 # toggle tiling / floating
 bindsym $mod+Shift+space floating toggle
