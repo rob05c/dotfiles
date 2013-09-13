@@ -10,7 +10,7 @@
 
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
-n    # include .bashrc if it exists
+    # include .bashrc if it exists
     if [ -f "$HOME/.bashrc" ]; then
 	. "$HOME/.bashrc"
     fi
@@ -28,3 +28,5 @@ PATH=$PATH:$GOPATH/bin
 PATH=$PATH:$HOME/lang/go/src/github.com/mattn/go-v8/v8/include
 export PATH
 export GOPATH
+
+PS1="\033[1;33m\u@\033[1;36m\h \033[1;34m\w\033[0m$ "
