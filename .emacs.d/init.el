@@ -396,4 +396,3 @@ function."
 		(js--delete-whole-line len)))
 	     (t
 	      (error "invalid rcs patch or internal error in js--apply-rcs-patch")))))))))
-
