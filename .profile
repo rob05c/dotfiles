@@ -25,10 +25,10 @@ fi
 alias sudo='sudo env PATH=$PATH $@'
 alias run=open
 alias ls='ls -G'
-# alias grepnoc='grep --color=never'
-# alias grep='grep --color=always'
+alias grepnoc='grep --color=never'
+alias grepc='grep --color=always'
 alias less='less -R'
-#alias fixcaps='setxkbmap -option "ctrl:nocaps"'
+alias fixcaps='setxkbmap -option "ctrl:nocaps"'
 #alias loff='xrandr --output eDP1 --off && feh --bg-scale ~/sync/img/ngc1300.jpg'
 alias stripansi='sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g"'
 alias hubsql='psql -h jezebel -U rob -d hubski'
