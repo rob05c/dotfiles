@@ -25,7 +25,8 @@ fi
 alias sudo='sudo env PATH=$PATH $@'
 alias run=open
 alias ls='ls -G'
-alias grep='grep --color=always'
+# alias grepnoc='grep --color=never'
+# alias grep='grep --color=always'
 alias less='less -R'
 #alias fixcaps='setxkbmap -option "ctrl:nocaps"'
 #alias loff='xrandr --output eDP1 --off && feh --bg-scale ~/sync/img/ngc1300.jpg'
@@ -43,9 +44,10 @@ export LESS=' -R -F -X '
 
 export PATH="/usr/local/Cellar":$PATH
 export PATH="/usr/local/bin":$PATH
+export PATH="/Applications/Racket/bin":$PATH
 #export PATH=$PATH:"/usr/local/Cellar/gnu-sed/4.2.2/libexec/gnubin/sed"
 export GOPATH=$HOME/lang/go/
-export GOROOT=/usr/local/opt/go/libexec
+export GOROOT=/usr/local/go
 export PATH=$PATH:$GOPATH/bin
 export PATH=$PATH:$GOROOT/bin
 
@@ -63,6 +65,7 @@ esac
 
 export HISTSIZE=""
 export HISTFILESIZE=""
+export HISTCONTROL=ignoreboth
 
 #export PATH=$PATH:/usr/local/go/bin
 
@@ -106,3 +109,27 @@ alias tmux='tmux -2'
 if [ -f ~/.git-completion.bash ]; then
 		. ~/.git-completion.bash
 fi
+
+alias docker-attach='docker attach --detach-keys="ctrl-t,q"'
+alias docker-exec='docker exec --detach-keys="ctrl-t,q"'
+alias kubectl="kubectl --kubeconfig=${PWD}/kubeconfig"
+alias em="emacs"
+alias pgstart="pg_ctl -D /usr/local/var/postgres -l logfile start"
+
+function perf {
+  curl -o /dev/null -s -w "%{time_connect} + %{time_starttransfer} = %{time_total}\n" "$1"
+}
+
+alias logfromunix="sed -re 's#^([0-9]*\\.[0-9]*)(.*)#echo `gdate -d @\\1` \\2#ge'"
+
+alias clc="closure-compiler"
+
+function jsfmt {
+	closure-compiler --formatting PRETTY_PRINT --formatting PRINT_INPUT_DELIMITER --formatting SINGLE_QUOTES --js $1 > jsfmt.js && mv jsfmt.js $1
+}
+
+function jdiff {
+	colordiff <(jq -S . $1) <(jq -S . $2)
+}
+
+fortune | cowsay
