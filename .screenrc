@@ -1,0 +1,59 @@
+escape ^Oo
+term xterm-256color
+altscreen on
+
+# emacs nagivation
+#markkeys ^B=Y:^F=V:h=^B:l=^F:0=^A:$=^E
+# emacs ctrl+space to mark
+markkeys ' '=^@:^w
+# emacs ctrl-g quits copy mode
+#markkeys \033=\015=^G=^D=h=j=k=l=H=M=L=G=g=y=c=v=a=x=b=e=B=E=w
+
+# esc does nothing (defaults to vim behavior)
+markkeys @=\033
+# emacs word navigation
+markkeys B=[:E=]:b={:e=}:w=>
+bindkey -m ^[Od stuff {  #"[[}"
+bindkey -m ^[Oc stuff ]  #"}]^f"
+
+# the following two lines give a two-line status, with the current window highlighted
+hardstatus alwayslastline
+hardstatus string '%{= kG}[%{G}%H%? %1`%?%{g}][%= %{= kw}%-w%{+b yk} %n*%t%?(%u)%? %{-}%+w %=%{g}][%{B}%m/%d %{W}%C%A%{g}]'
+
+# huge scrollback buffer
+defscrollback 5000
+
+# no welcome message
+startup_message off
+
+# 256 colors
+attrcolor b ".I"
+termcapinfo xterm 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+defbce on
+
+# emacs window management
+bind o focus
+bind 0 remove
+bind 1 only
+bind 2 split
+bind = resize =
+bind ^b windowlist -m
+
+# bindkey -m "^[<" stuff "g"
+# bindkey -m "^[>" stuff "G"
+
+bindkey -m "^[v" stuff ^b
+bindkey -m "^v" stuff ^f
+bindkey -m "^[f" stuff E
+bindkey -m "^[b" stuff B
+
+bindkey -m "^[<" stuff g
+bindkey -m "^[>" stuff G
+
+bindkey -m "^a" stuff 0
+bindkey -m "^e" stuff $
+bindkey -m "^ " stuff " "
+bindkey -m "^w" stuff " "
+
+bindkey -m "^b" stuff h
+bindkey -m "^f" stuff l
