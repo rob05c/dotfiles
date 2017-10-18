@@ -120,7 +120,7 @@ function perf {
   curl -o /dev/null -s -w "%{time_connect} + %{time_starttransfer} = %{time_total}\n" "$1"
 }
 
-alias logfromunix="sed -re 's#^([0-9]*\\.[0-9]*)(.*)#echo `gdate -d @\\1` \\2#ge'"
+alias logfromunix="sed -re 's#^([0-9]*\\.[0-9]*)(.*)#echo `date -d @\\1` \\2#ge'"
 
 alias clc="closure-compiler"
 
