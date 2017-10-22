@@ -1,6 +1,7 @@
 escape ^Oo
 term xterm-256color
 altscreen on
+layout save default
 
 # emacs nagivation
 #markkeys ^B=Y:^F=V:h=^B:l=^F:0=^A:$=^E
@@ -35,9 +36,11 @@ defbce on
 bind o focus
 bind 0 remove
 bind 1 only
-bind 2 split
+bind 2 eval split focus screen
+bind 3 eval "split -v" focus screen
 bind = resize =
-bind ^b windowlist -m
+bind b windowlist -m
+bind , sessionname
 
 # bindkey -m "^[<" stuff "g"
 # bindkey -m "^[>" stuff "G"
