@@ -24,7 +24,7 @@ fi
 
 alias sudo='sudo env PATH=$PATH $@'
 alias run=open
-alias ls='ls -G'
+alias ls='ls --color'
 alias grepnoc='grep --color=never'
 alias grepc='grep --color=always'
 alias less='less -R'
@@ -47,9 +47,10 @@ export PATH="/usr/local/bin":$PATH
 export PATH="/Applications/Racket/bin":$PATH
 #export PATH=$PATH:"/usr/local/Cellar/gnu-sed/4.2.2/libexec/gnubin/sed"
 export GOPATH=$HOME/lang/go/
-export GOROOT=/usr/local/go
 export PATH=$PATH:$GOPATH/bin
-export PATH=$PATH:$GOROOT/bin
+# GOROOT is the location of go packages, not the binary (which is likely a symlink). This is compiled in, and shouldn't be necessary to set until the packages are installed in a different location than the compiler and packager intended.
+# export GOROOT=/usr/bin/go
+# export PATH=$PATH:$GOROOT/bin
 
 export PATH=$PATH:$HOME/nim/bin
 
@@ -114,6 +115,7 @@ alias docker-attach='docker attach --detach-keys="ctrl-t,q"'
 alias docker-exec='docker exec --detach-keys="ctrl-t,q"'
 alias kubectl="kubectl --kubeconfig=${PWD}/kubeconfig"
 alias em="emacs"
+alias sc="screen"
 alias pgstart="pg_ctl -D /usr/local/var/postgres -l logfile start"
 
 function perf {
@@ -124,6 +126,7 @@ alias logfromunix="sed -re 's#^([0-9]*\\.[0-9]*)(.*)#echo `date -d @\\1` \\2#ge'
 
 alias clc="closure-compiler"
 
+
 function jsfmt {
 	closure-compiler --formatting PRETTY_PRINT --formatting PRINT_INPUT_DELIMITER --formatting SINGLE_QUOTES --js $1 > jsfmt.js && mv jsfmt.js $1
 }
@@ -132,4 +135,22 @@ function jdiff {
 	colordiff <(jq -S . $1) <(jq -S . $2)
 }
 
-fortune | cowsay
+command -v fortune > /dev/null 2>&1 && command -v cowsay > /dev/null 2>&1 && fortune | cowsay
+
+# screen
+########
+
+alias scl="screen -list | tail -n +2 | head -n -1 | tr -s ' ' '\t' | cut -f2"
+alias sca="screen -r"
+alias scn="screen -S"
+
+_screen()
+{
+	local bufs="$(screen -list | tail -n +2 | head -n -1 | tr -s ' ' '\t' | cut -f2 | cut -f2 -d'.' | tr '\n' ' ')"
+	local cur=${COMP_WORDS[COMP_CWORD]}
+	COMPREPLY=( $(compgen -W "$bufs" -- $cur) )
+}
+complete -F _screen screen
+complete -F _screen sc
+complete -F _screen sca
+complete -F _screen scn
