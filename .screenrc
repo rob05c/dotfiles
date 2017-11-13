@@ -36,11 +36,11 @@ defbce on
 bind o focus
 bind 0 remove
 bind 1 only
-bind 2 eval split focus screen
-bind 3 eval "split -v" focus screen
+bind 2 eval split focus next next
+bind 3 eval "split -v" focus next next
 bind = resize =
 bind b windowlist -m
-bind , sessionname
+bind , title
 
 # bindkey -m "^[<" stuff "g"
 # bindkey -m "^[>" stuff "G"
