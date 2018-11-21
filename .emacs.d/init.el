@@ -2,15 +2,13 @@
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (add-to-list 'load-path "~/.emacs.d/lisp/neotree")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes")
 
 (require 'neotree)
 (global-set-key (kbd "C-c n") 'neotree-toggle)
 
-;;
-;; UI
-;;
-(menu-bar-mode -1)
-
+(require 'multi-term)
+(setq multi-term-program "/bin/bash")
 
 ;;
 ;; backups
@@ -24,6 +22,30 @@
       kept-old-versions 2
       version-control t)
 
+;;
+;; tabs
+;;
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(my-tab-face ((((class color)) (:foreground "#ccccc6"))) t))
+;; add custom font locks to all buffers and all files
+(add-hook
+ 'font-lock-mode-hook
+ (function
+	(lambda ()
+		(setq
+		 font-lock-keywords
+		 (append
+			font-lock-keywords
+			'(
+				("\t" (0 'my-tab-face t))
+				))))))
+
+(standard-display-ascii ?\t "» ")
+ ;; (setq-default indent-tabs-mode nil)
 
 ;;
 ;; modes
@@ -40,15 +62,15 @@
 (autoload 'markdown-mode "markdown-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.md\\'" . markdown-mode))
 
-(autoload 'nimrod-mode "nimrod-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.nim\\'" . nimrod-mode))
-
 (autoload 'web-mode "web-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.html\\'" . web-mode))
 
 (autoload 'elixir-mode "elixir-mode" nil t)
 (add-to-list 'auto-mode-alist '("\\.ex\\'" . elixir-mode))
 (add-to-list 'auto-mode-alist '("\\.exs\\'" . elixir-mode))
+
+(autoload 'json-mode "json-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode))
 
 (defun my-web-mode-hook ()
 	"Hooks for Web mode."
@@ -61,6 +83,13 @@
 
 (autoload 'go-mode "go-mode" "Go Mode." t)
 (add-to-list 'auto-mode-alist '("\\.go\\'" . go-mode))
+
+(autoload 'nim-mode "nim-mode" "Nim Mode." t)
+(add-to-list 'auto-mode-alist '("\\.nim\\'" . nim-mode))
+;; (add-hook 'nim-mode-hook 'nimsuggest-mode)
+
+(autoload 'rust-mode "rust-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
 
 (autoload 'dockerfile-mode "dockerfile-mode" "Dockerfile Mode." t)
 (add-to-list 'auto-mode-alist '("\\Dockerfile\\'" . dockerfile-mode))
@@ -84,7 +113,7 @@
 (c-set-offset 'innamespace 0)
 (setq indent-namespaces "no")
 (setq gdb-many-windows 1)
-(setq default-tab-width 2)
+(setq-default tab-width 2)
 
 ;; (global-visual-line-mode 1)
 (setq line-move-visual nil)
@@ -101,60 +130,38 @@
 	(lambda ()
 		(set (make-local-variable 'sgml-basic-offset) 2)))
 
-(defun my-go-mode-hook ()
-	(require 'go-dlv)
-	;; Call Gofmt before saving
-	(add-hook 'before-save-hook 'gofmt-before-save)
-	;; Customize compile command to run go build
-	(if (not (string-match "go" compile-command))
-			(set (make-local-variable 'compile-command)
-					 ;; "go build -v && go test -v && go vet"))
-					 "go build -v"))
-	;; Godef jump key binding
-	(local-set-key (kbd "M-.") 'godef-jump))
-(add-hook 'go-mode-hook 'my-go-mode-hook)
+(add-hook 'go-mode-hook
+					(lambda ()
+						(require 'go-dlv)
+						;; Call Gofmt before saving
+						(add-hook 'before-save-hook 'gofmt-before-save)
+						;; Customize compile command to run go build
+						(if (not (string-match "go" compile-command))
+								(set (make-local-variable 'compile-command)
+										 ;; "go build -v && go test -v && go vet"))
+										 "go build -v"))
+						;; Godef jump key binding
+						(local-set-key (kbd "M-.") 'godef-jump)))
+
+(setq rust-format-on-save t)
+(add-hook 'rust-mode-hook
+	(lambda () (setq compile-command "cargo build")))
 
 ;; save-place (saves last cursor position in each file
 (setq save-place-file "~/.emacs.d/saveplace")
 (setq-default save-place t)
 (require 'saveplace)
 
-(load-theme 'manoj-dark)
-(set-face-foreground 'mode-line "black")
-(set-face-background 'mode-line "gold")
-(set-face-background 'mode-line-inactive "yellow")
-(set-face-foreground 'mode-line-inactive "black")
+(load-theme 'solarized-light t)
+(menu-bar-mode -1)
 
 (setq inhibit-startup-screen +1)
 (setq initial-scratch-message "")
 
 (setq-default show-trailing-whitespace +1)
 
-
-;;
-;; tabs
-;;
-(custom-set-faces
- '(my-tab-face ((((class color)) (:foreground "brightblack"))) t)
- )
-;; add custom font locks to all buffers and all files
-(add-hook
- 'font-lock-mode-hook
- (function
-	(lambda ()
-		(setq
-		 font-lock-keywords
-		 (append
-			font-lock-keywords
-			'(
-				("\t" (0 'my-tab-face t))
-				))))))
-
-(standard-display-ascii ?\t "» ")
- ;; (setq-default indent-tabs-mode nil)
-
 ;; gofmt means I don't care if there are tabs or spaces while editing
-(add-hook 'go-mode-hook (lambda () (standard-display-ascii ?\t "\t")))
+;; (add-hook 'go-mode-hook (lambda () (standard-display-ascii ?\t "\t")))
 
 (defun my-elixir-hook ()
 	(setq indent-tabs-mode nil)
@@ -244,155 +251,228 @@
 ;; (global-set-key (kbd "C-M-b") 'scroll-right)
 
 
-(defun my-js-mode-hook ()
-	(add-hook 'before-save-hook 'jsfmt-before-save))
-(add-hook 'js-mode-hook 'my-js-mode-hook)
+;; (defun my-js-mode-hook ()
+;; 	(add-hook 'before-save-hook 'jsfmt-before-save))
+;; (add-hook 'js-mode-hook 'my-js-mode-hook)
 
-(defun jsfmt-before-save ()
-	(jsfmt))
+;; (defun jsfmt-before-save ()
+;; 	(jsfmt))
 
-(defcustom jsfmt-command "closure-compiler --formatting=PRETTY_PRINT"
-    "The 'jsfmt' closure-compiler formatting command."
-    :type 'string
-    :group 'js)
+;; (defcustom jsfmt-command "closure-compiler --formatting=PRETTY_PRINT"
+;;     "The 'jsfmt' closure-compiler formatting command."
+;;     :type 'string
+;;     :group 'js)
 
-(defun jsfmt ()
-  "Format the current buffer according to the closure-compiler tool."
-  (interactive)
-  (let ((tmpfile (make-temp-file "jsfmt" nil ".js"))
-	(patchbuf (get-buffer-create "*Jsfmt patch*"))
-	(errbuf (if jsfmt-show-errors (get-buffer-create "*Jsfmt Errors*")))
-	(coding-system-for-read 'utf-8)
-	(coding-system-for-write 'utf-8))
+;; (defun jsfmt ()
+;;   "Format the current buffer according to the closure-compiler tool."
+;;   (interactive)
+;;   (let ((tmpfile (make-temp-file "jsfmt" nil ".js"))
+;; 	(patchbuf (get-buffer-create "*Jsfmt patch*"))
+;; 	(errbuf (if jsfmt-show-errors (get-buffer-create "*Jsfmt Errors*")))
+;; 	(coding-system-for-read 'utf-8)
+;; 	(coding-system-for-write 'utf-8))
 
-    (save-restriction
-      (widen)
-      (if errbuf
-	  (with-current-buffer errbuf
-	    (setq buffer-read-only nil)
-	    (erase-buffer)))
-      (with-current-buffer patchbuf
-	(erase-buffer))
+;;     (save-restriction
+;;       (widen)
+;;       (if errbuf
+;; 	  (with-current-buffer errbuf
+;; 	    (setq buffer-read-only nil)
+;; 	    (erase-buffer)))
+;;       (with-current-buffer patchbuf
+;; 	(erase-buffer))
 
-      (write-region nil nil tmpfile)
+;;       (write-region nil nil tmpfile)
 
-      ;; We're using errbuf for the mixed stdout and stderr output. This
-      ;; is not an issue because closure-compiler --js-output-file does not produce any stdout
-      ;; output in case of success.
-      (if (zerop (call-process jsfmt-command nil errbuf nil "--js-output-file" tmpfile))
-	  (progn
-	    (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
-		(message "Buffer is already formatted")
-	      (go--apply-rcs-patch patchbuf)
-	      (message "Applied jsfmt"))
-	    (if errbuf (jsfmt--kill-error-buffer errbuf)))
-	(message "Could not apply jsfmt")
-	(if errbuf (jsfmt--process-errors (buffer-file-name) tmpfile errbuf)))
+;;       ;; We're using errbuf for the mixed stdout and stderr output. This
+;;       ;; is not an issue because closure-compiler --js-output-file does not produce any stdout
+;;       ;; output in case of success.
+;;       (if (zerop (call-process jsfmt-command nil errbuf nil "--js-output-file" tmpfile))
+;; 	  (progn
+;; 	    (if (zerop (call-process-region (point-min) (point-max) "diff" nil patchbuf nil "-n" "-" tmpfile))
+;; 		(message "Buffer is already formatted")
+;; 	      (go--apply-rcs-patch patchbuf)
+;; 	      (message "Applied jsfmt"))
+;; 	    (if errbuf (jsfmt--kill-error-buffer errbuf)))
+;; 	(message "Could not apply jsfmt")
+;; 	(if errbuf (jsfmt--process-errors (buffer-file-name) tmpfile errbuf)))
 
-      (kill-buffer patchbuf)
-      (delete-file tmpfile))))
+;;       (kill-buffer patchbuf)
+;;       (delete-file tmpfile))))
 
-(defcustom jsfmt-show-errors 'buffer
-    "Where to display jsfmt error output.
-It can either be displayed in its own buffer, in the echo area, or not at all.
+;; (defcustom jsfmt-show-errors 'buffer
+;;     "Where to display jsfmt error output.
+;; It can either be displayed in its own buffer, in the echo area, or not at all.
 
-Please note that Emacs outputs to the echo area when writing
-files and will overwrite jsfmt's echo output if used from inside
-a `before-save-hook'."
-    :type '(choice
-	    (const :tag "Own buffer" buffer)
-	    (const :tag "Echo area" echo)
-	    (const :tag "None" nil))
-    :group 'js)
+;; Please note that Emacs outputs to the echo area when writing
+;; files and will overwrite jsfmt's echo output if used from inside
+;; a `before-save-hook'."
+;;     :type '(choice
+;; 	    (const :tag "Own buffer" buffer)
+;; 	    (const :tag "Echo area" echo)
+;; 	    (const :tag "None" nil))
+;;     :group 'js)
 
-(defun jsfmt--process-errors (filename tmpfile errbuf)
-  (with-current-buffer errbuf
-    (if (eq jsfmt-show-errors 'echo)
-	(progn
-	  (message "%s" (buffer-string))
-	  (jsfmt--kill-error-buffer errbuf))
-      ;; Convert the jsfmt stderr to something understood by the compilation mode.
-      (goto-char (point-min))
-      (insert "jsfmt errors:\n")
-      (while (search-forward-regexp (concat "^\\(" (regexp-quote tmpfile) "\\):") nil t)
-	(replace-match (file-name-nondirectory filename) t t nil 1))
-      (compilation-mode)
-      (display-buffer errbuf))))
+;; (defun jsfmt--process-errors (filename tmpfile errbuf)
+;;   (with-current-buffer errbuf
+;;     (if (eq jsfmt-show-errors 'echo)
+;; 	(progn
+;; 	  (message "%s" (buffer-string))
+;; 	  (jsfmt--kill-error-buffer errbuf))
+;;       ;; Convert the jsfmt stderr to something understood by the compilation mode.
+;;       (goto-char (point-min))
+;;       (insert "jsfmt errors:\n")
+;;       (while (search-forward-regexp (concat "^\\(" (regexp-quote tmpfile) "\\):") nil t)
+;; 	(replace-match (file-name-nondirectory filename) t t nil 1))
+;;       (compilation-mode)
+;;       (display-buffer errbuf))))
 
-(defun jsfmt--kill-error-buffer (errbuf)
-  (let ((win (get-buffer-window errbuf)))
-    (if win
-	(quit-window t win)
-      (kill-buffer errbuf))))
+;; (defun jsfmt--kill-error-buffer (errbuf)
+;;   (let ((win (get-buffer-window errbuf)))
+;;     (if win
+;; 	(quit-window t win)
+;;       (kill-buffer errbuf))))
 
-(defun js--goto-line (line)
-  (goto-char (point-min))
-  (forward-line (1- line)))
+;; (defun js--goto-line (line)
+;;   (goto-char (point-min))
+;;   (forward-line (1- line)))
 
-(defun js--delete-whole-line (&optional arg)
-    "Delete the current line without putting it in the `kill-ring'.
-Derived from function `kill-whole-line'.  ARG is defined as for that
-function."
-    (setq arg (or arg 1))
-    (if (and (> arg 0)
-	     (eobp)
-	     (save-excursion (forward-visible-line 0) (eobp)))
-	(signal 'end-of-buffer nil))
-    (if (and (< arg 0)
-	     (bobp)
-	     (save-excursion (end-of-visible-line) (bobp)))
-	(signal 'beginning-of-buffer nil))
-    (cond ((zerop arg)
-	   (delete-region (progn (forward-visible-line 0) (point))
-			  (progn (end-of-visible-line) (point))))
-	  ((< arg 0)
-	   (delete-region (progn (end-of-visible-line) (point))
-			  (progn (forward-visible-line (1+ arg))
-				 (unless (bobp)
-				   (backward-char))
-				 (point))))
-	  (t
-	   (delete-region (progn (forward-visible-line 0) (point))
-			  (progn (forward-visible-line arg) (point))))))
+;; (defun js--delete-whole-line (&optional arg)
+;;     "Delete the current line without putting it in the `kill-ring'.
+;; Derived from function `kill-whole-line'.  ARG is defined as for that
+;; function."
+;;     (setq arg (or arg 1))
+;;     (if (and (> arg 0)
+;; 	     (eobp)
+;; 	     (save-excursion (forward-visible-line 0) (eobp)))
+;; 	(signal 'end-of-buffer nil))
+;;     (if (and (< arg 0)
+;; 	     (bobp)
+;; 	     (save-excursion (end-of-visible-line) (bobp)))
+;; 	(signal 'beginning-of-buffer nil))
+;;     (cond ((zerop arg)
+;; 	   (delete-region (progn (forward-visible-line 0) (point))
+;; 			  (progn (end-of-visible-line) (point))))
+;; 	  ((< arg 0)
+;; 	   (delete-region (progn (end-of-visible-line) (point))
+;; 			  (progn (forward-visible-line (1+ arg))
+;; 				 (unless (bobp)
+;; 				   (backward-char))
+;; 				 (point))))
+;; 	  (t
+;; 	   (delete-region (progn (forward-visible-line 0) (point))
+;; 			  (progn (forward-visible-line arg) (point))))))
 
-(defun js--apply-rcs-patch (patch-buffer)
-  "Apply an RCS-formatted diff from PATCH-BUFFER to the current buffer."
-  (let ((target-buffer (current-buffer))
-	;; Relative offset between buffer line numbers and line numbers
-	;; in patch.
-	;;
-	;; Line numbers in the patch are based on the source file, so
-	;; we have to keep an offset when making changes to the
-	;; buffer.
-	;;
-	;; Appending lines decrements the offset (possibly making it
-	;; negative), deleting lines increments it. This order
-	;; simplifies the forward-line invocations.
-	(line-offset 0))
-    (save-excursion
-      (with-current-buffer patch-buffer
-	(goto-char (point-min))
-	(while (not (eobp))
-	  (unless (looking-at "^\\([ad]\\)\\([0-9]+\\) \\([0-9]+\\)")
-	    (error "invalid rcs patch or internal error in js--apply-rcs-patch"))
-	  (forward-line)
-	  (let ((action (match-string 1))
-		(from (string-to-number (match-string 2)))
-		(len  (string-to-number (match-string 3))))
-	    (cond
-	     ((equal action "a")
-	      (let ((start (point)))
-		(forward-line len)
-		(let ((text (buffer-substring start (point))))
-		  (with-current-buffer target-buffer
-		    (decf line-offset len)
-		    (goto-char (point-min))
-		    (forward-line (- from len line-offset))
-		    (insert text)))))
-	     ((equal action "d")
-	      (with-current-buffer target-buffer
-		(js--goto-line (- from line-offset))
-		(incf line-offset len)
-		(js--delete-whole-line len)))
-	     (t
-	      (error "invalid rcs patch or internal error in js--apply-rcs-patch")))))))))
+;; (defun js--apply-rcs-patch (patch-buffer)
+;;   "Apply an RCS-formatted diff from PATCH-BUFFER to the current buffer."
+;;   (let ((target-buffer (current-buffer))
+;; 	;; Relative offset between buffer line numbers and line numbers
+;; 	;; in patch.
+;; 	;;
+;; 	;; Line numbers in the patch are based on the source file, so
+;; 	;; we have to keep an offset when making changes to the
+;; 	;; buffer.
+;; 	;;
+;; 	;; Appending lines decrements the offset (possibly making it
+;; 	;; negative), deleting lines increments it. This order
+;; 	;; simplifies the forward-line invocations.
+;; 	(line-offset 0))
+;;     (save-excursion
+;;       (with-current-buffer patch-buffer
+;; 	(goto-char (point-min))
+;; 	(while (not (eobp))
+;; 	  (unless (looking-at "^\\([ad]\\)\\([0-9]+\\) \\([0-9]+\\)")
+;; 	    (error "invalid rcs patch or internal error in js--apply-rcs-patch"))
+;; 	  (forward-line)
+;; 	  (let ((action (match-string 1))
+;; 		(from (string-to-number (match-string 2)))
+;; 		(len  (string-to-number (match-string 3))))
+;; 	    (cond
+;; 	     ((equal action "a")
+;; 	      (let ((start (point)))
+;; 		(forward-line len)
+;; 		(let ((text (buffer-substring start (point))))
+;; 		  (with-current-buffer target-buffer
+;; 		    (decf line-offset len)
+;; 		    (goto-char (point-min))
+;; 		    (forward-line (- from len line-offset))
+;; 		    (insert text)))))
+;; 	     ((equal action "d")
+;; 	      (with-current-buffer target-buffer
+;; 		(js--goto-line (- from line-offset))
+;; 		(incf line-offset len)
+;; 		(js--delete-whole-line len)))
+;; 	     (t
+;; 	      (error "invalid rcs patch or internal error in js--apply-rcs-patch")))))))))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+	 (quote
+		("d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" default))))
+
+(require 'term)
+(define-key term-mode-map (kbd "C-x C-k") 'term-char-mode)
+(global-set-key (kbd "C-x ,") 'rename-buffer)
+(global-set-key (kbd "C-c C-t") (lambda () (interactive) (ansi-term "/bin/bash")))
+
+(add-hook
+ 'term-mode-hook
+ (lambda ()
+	 (setq-local show-trailing-whitespace nil)
+ 	 (setq term-buffer-maximum-size 1000000)))
+
+(show-paren-mode 1)
+(require 'paren)
+(set-face-background 'show-paren-match (face-background 'default))
+(set-face-foreground 'show-paren-match "#000")
+(set-face-attribute 'show-paren-match nil :weight 'extra-bold)
+(setq show-paren-delay 0)
+
+(set-face-attribute
+ 'mode-line nil
+ :foreground "#ffffff"
+ :background "#111111")
+
+(set-face-attribute
+ 'mode-line-inactive nil
+ :foreground "#111111")
+
+;; (set-face-attribute 'modeline-buffer-id nil :foreground "#00ffff")
+
+(term-set-escape-char 24) ; set term command char to C-x (as it normally is; defaults to C-c)
+(setq tramp-default-method "ssh") ; TRAMP defaults to scp, which is slower
+
+;;
+;; tabs
+;;
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(my-tab-face ((((class color)) (:foreground "#ccccc6"))) t))
+;; add custom font locks to all buffers and all files
+(add-hook
+ 'font-lock-mode-hook
+ (function
+	(lambda ()
+		(setq
+		 font-lock-keywords
+		 (append
+			font-lock-keywords
+			'(
+				("\t" (0 'my-tab-face t))
+				))))))
+
+(standard-display-ascii ?\t "» ")
+ ;; (setq-default indent-tabs-mode nil)
+
+(add-hook 'web-mode-hook (lambda () (standard-display-ascii ?\t "» ")))
+;; (setq default-tab-width 2)
+
+;; (add-hook 'go-mode-hook (lambda () (standard-display-ascii ?\t "\t")))
+;; (standard-display-ascii ?\t "\t") ; debug
+(setq-default tab-width 2)
