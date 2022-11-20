@@ -1,5 +1,4 @@
+source ~/.profile
 if [ -f ~/.bashrc ]; then
-	source ~/.bashrc
-else
-	source ~/.profile
+    source ~/.bashrc
 fi

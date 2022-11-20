@@ -1,4 +1,94 @@
-(require 'cl)
+
+;; Added by Package.el.  This must come before configurations of
+;; installed packages.  Don't delete this line.  If you don't want it,
+;; just comment it out by adding a semicolon to the start of the line.
+;; You may delete these explanatory comments.
+
+;; (require 'package)
+;; (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+;; (package-initialize)
+
+
+;; package stuff
+(require 'package)
+
+(add-to-list 'package-archives
+             '("elpy" . "http://jorgenschaefer.github.io/packages/"))
+
+(add-to-list 'package-archives
+             '("marmalade" . "http://marmalade-repo.org/packages/"))
+
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+
+(add-to-list 'package-archives
+             '("melpa-stable" . "http://melpa-stable.milkbox.net/packages/") t)
+
+(add-to-list 'load-path "~/.emacs.d/site-lisp/")
+
+
+; list the packages you want
+(setq package-list-original
+ '(
+   python-environment
+   deferred
+   epc
+   flycheck
+	 ctable
+	 jedi
+	 concurrent
+	 company
+	 cyberpunk-theme
+	 elpy
+	 yasnippet
+	 pyvenv
+	 highlight-indentation
+	 find-file-in-project
+   sql-indent
+	 sql
+	 exec-path-from-shell
+	 iedit
+   auto-complete
+	 popup
+	 let-alist
+	 magit
+	 git-rebase-mode
+   git-commit-mode
+	 minimap
+	 popup
+	 ))
+
+(setq package-list
+ '(
+  go-mode
+  clang-format
+	leuven-theme
+	afternoon-theme
+	;; solarized-theme
+	;; smart-mode-line
+	;; smart-mode-line-powerline-theme
+	telephone-line
+  ))
+
+
+; activate all the packages
+(package-initialize)
+
+; fetch the list of packages available
+(unless package-archive-contents
+  (package-refresh-contents))
+
+; install the missing packages
+(dolist (package package-list)
+  (unless (package-installed-p package)
+    (package-install package)))
+
+
+;; (load "~/.emacs.d/init-packages")
+
+;; to reinstall packages on a new system:
+;; M-x package-install-selected-packages
+
+;; (require 'cl-lib)
 
 (add-to-list 'load-path "~/.emacs.d/lisp")
 (add-to-list 'load-path "~/.emacs.d/lisp/neotree")
@@ -25,12 +115,14 @@
 ;;
 ;; tabs
 ;;
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(my-tab-face ((((class color)) (:foreground "#ccccc6"))) t))
+;; (custom-set-faces
+;;  ;; custom-set-faces was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(my-tab-face ((((class color)) (:foreground "#333338"))) t))
+
+ ;; '(my-tab-face-light ((((class color)) (:foreground "#ccccc6"))) t))
 ;; add custom font locks to all buffers and all files
 (add-hook
  'font-lock-mode-hook
@@ -102,6 +194,13 @@
 
 (add-to-list 'auto-mode-alist '("\\.rkt\\'" . scheme-mode))
 
+(autoload 'swift-mode "swift-mode" "Swift Mode." t)
+(add-to-list 'auto-mode-alist '("\\.swift\\'" . swift-mode))
+
+(add-hook 'swift-mode-hook
+	(lambda ()
+		(set indent-tabs-mode nil)))
+
 ;;
 ;; code formatting
 ;;
@@ -132,7 +231,7 @@
 
 (add-hook 'go-mode-hook
 					(lambda ()
-						(require 'go-dlv)
+						;; (require 'go-dlv)
 						;; Call Gofmt before saving
 						(add-hook 'before-save-hook 'gofmt-before-save)
 						;; Customize compile command to run go build
@@ -143,16 +242,33 @@
 						;; Godef jump key binding
 						(local-set-key (kbd "M-.") 'godef-jump)))
 
+(defun clang-format-save-hook-for-this-buffer ()
+  "Create a buffer local save hook."
+  (add-hook 'before-save-hook
+            (lambda ()
+              (when (locate-dominating-file "." ".clang-format")
+                (clang-format-buffer))
+              ;; Continue to save.
+              nil)
+            nil
+            ;; Buffer local hook.
+            t))
+
+;; Run this for each mode you want to use the hook.
+(add-hook 'c-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+(add-hook 'c++-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+(add-hook 'glsl-mode-hook (lambda () (clang-format-save-hook-for-this-buffer)))
+
 (setq rust-format-on-save t)
 (add-hook 'rust-mode-hook
 	(lambda () (setq compile-command "cargo build")))
 
 ;; save-place (saves last cursor position in each file
 (setq save-place-file "~/.emacs.d/saveplace")
-(setq-default save-place t)
+;(setq-default save-place t)
 (require 'saveplace)
+(save-place-mode 1)
 
-(load-theme 'solarized-light t)
 (menu-bar-mode -1)
 
 (setq inhibit-startup-screen +1)
@@ -163,10 +279,15 @@
 ;; gofmt means I don't care if there are tabs or spaces while editing
 ;; (add-hook 'go-mode-hook (lambda () (standard-display-ascii ?\t "\t")))
 
+(add-hook 'before-save-hook #'gofmt-before-save)
+
 (defun my-elixir-hook ()
 	(setq indent-tabs-mode nil)
 	(setq tab-width 2))
 (add-hook 'elixir-mode-hook 'my-elixir-hook)
+
+(add-hook 'elixir-mode-hook
+          (lambda () (add-hook 'before-save-hook 'elixir-format nil t)))
 
 (defun my-web-hook ()
 	(setq indent-tabs-mode nil)
@@ -223,7 +344,9 @@
 					("<=" . 8804)    ; ≤
 					("!=" . 8800)    ; ≠
 					;; (":=" . 8592)    ; ←
+
 					(":=" . 8788)    ; ≔
+
 					;; ("==" . 65309)   ; ＝
 					;; ("<-" . 8695)    ; ⇷
 					("<-" . 8592)    ; ←
@@ -232,7 +355,8 @@
 					("||" . 8744)    ; ∨
 					(" * " . 183)    ; ·
 					;; ("util" . 128295)    ; 🔧
-					)))
+					))
+	)
 (add-hook 'go-mode-hook 'my-add-pretty-lambda)
 
 
@@ -404,25 +528,82 @@
 ;; 	     (t
 ;; 	      (error "invalid rcs patch or internal error in js--apply-rcs-patch")))))))))
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-	 (quote
-		("d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" default))))
+;; (custom-set-variables
+;;  ;; custom-set-variables was added by Custom.
+;;  ;; If you edit it by hand, you could mess it up, so be careful.
+;;  ;; Your init file should contain only one such instance.
+;;  ;; If there is more than one, they won't work right.
+;;  '(ansi-color-faces-vector
+;; 	 [default bold shadow italic underline bold bold-italic bold])
+;;  '(custom-safe-themes
+;; 	 '("8aebf25556399b58091e533e455dd50a6a9cba958cc4ebb0aab175863c25b9a4" "c335adbb7d7cb79bc34de77a16e12d28e6b927115b992bccc109fb752a365c72" "d677ef584c6dfc0697901a44b885cc18e206f05114c8a3b7fde674fce6180879" default))
+;;  '(package-selected-packages '(poet-theme)))
 
-(require 'term)
-(define-key term-mode-map (kbd "C-x C-k") 'term-char-mode)
+
+;(require 'term)
+;(define-key term-mode-map (kbd "C-x C-k") 'term-char-mode)
+;(global-set-key (kbd "C-c C-t") (lambda () (interactive) (ansi-term "/bin/bash")))
+
+
+(cond
+ ((eq system-type 'windows-nt)
+	(require 'powershell)
+	(prefer-coding-system 'utf-8)
+	(autoload 'powershell "powershell" "Run powershell as a shell within emacs.")
+
+	(defun git-bash () (interactive)
+				 (let ((explicit-shell-file-name "C:/Program Files/Git/bin/bash.exe"))
+					 (call-interactively 'shell)))
+
+	(set-frame-parameter (selected-frame) 'alpha '(100 100))
+	(add-to-list 'default-frame-alist '(alpha 100 100))
+
+	(set-terminal-coding-system 'utf-8)
+	(set-language-environment 'utf-8)
+	(set-keyboard-coding-system 'utf-8)
+	(prefer-coding-system 'utf-8)
+	(setq locale-coding-system 'utf-8)
+	(set-default-coding-systems 'utf-8)
+	(set-terminal-coding-system 'utf-8)
+	(tool-bar-mode -1)
+	(scroll-bar-mode -1)
+	(setq exec-path (append exec-path '("C:/Program Files (x86)/GnuWin32/bin")))
+	(setq visible-bell t)
+	(global-set-key (kbd "C-x C-y") 'clipboard-yank)
+ )
+
+ (t
+	;; transparency
+	(set-frame-parameter (selected-frame) 'alpha '(85 . 50))
+	(add-to-list 'default-frame-alist '(alpha . (85 . 50)))
+	(set-frame-parameter (selected-frame) 'alpha '(85 . 50))
+	(add-to-list 'default-frame-alist '(alpha . (85 . 50)))
+
+	(add-to-list 'load-path "~/emacs-libvterm")
+	(require 'vterm)
+	(global-set-key (kbd "C-c C-t") 'vterm)
+	(global-set-key (kbd "C-x C-j") 'vterm-copy-mode)
+	(global-set-key (kbd "C-x C-k") 'vterm-copy-mode)
+
+	(add-hook
+	 'vterm-mode-hook
+	 (lambda ()
+		 (local-set-key (kbd "C-c C-t") 'vterm) ; override the override
+		 (local-set-key (kbd "C-x C-x") 'vterm-send-C-x)
+		 (local-set-key (kbd "C-c C-c") 'vterm-send-C-c)
+		 (local-set-key (kbd "C-x C-c") 'vterm-send-C-c)
+		 (local-set-key (kbd "C-x C-s") 'vterm-send-C-s)
+		 (local-set-key (kbd "C-c") 'vterm-send-C-c)
+		 (local-set-key (kbd "C-g") 'vterm-send-C-g)
+		 (setq-local show-trailing-whitespace nil)
+		 (setq vterm-max-scrollback 50000)))
+
+	)
+)
+
+
+
 (global-set-key (kbd "C-x ,") 'rename-buffer)
-(global-set-key (kbd "C-c C-t") (lambda () (interactive) (ansi-term "/bin/bash")))
-
-(add-hook
- 'term-mode-hook
- (lambda ()
-	 (setq-local show-trailing-whitespace nil)
- 	 (setq term-buffer-maximum-size 1000000)))
 
 (show-paren-mode 1)
 (require 'paren)
@@ -431,14 +612,15 @@
 (set-face-attribute 'show-paren-match nil :weight 'extra-bold)
 (setq show-paren-delay 0)
 
-(set-face-attribute
- 'mode-line nil
- :foreground "#ffffff"
- :background "#111111")
+;; (set-face-attribute
+;;  'mode-line nil
+;;  :foreground "#ffffff"
+;;  :background "#111111")
 
-(set-face-attribute
- 'mode-line-inactive nil
- :foreground "#111111")
+;; (set-face-attribute
+;;  'mode-line-inactive nil
+;;  :foreground "#111111")
+
 
 ;; (set-face-attribute 'modeline-buffer-id nil :foreground "#00ffff")
 
@@ -448,12 +630,7 @@
 ;;
 ;; tabs
 ;;
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(my-tab-face ((((class color)) (:foreground "#ccccc6"))) t))
+
 ;; add custom font locks to all buffers and all files
 (add-hook
  'font-lock-mode-hook
@@ -476,3 +653,115 @@
 ;; (add-hook 'go-mode-hook (lambda () (standard-display-ascii ?\t "\t")))
 ;; (standard-display-ascii ?\t "\t") ; debug
 (setq-default tab-width 2)
+
+(setq grep-save-buffers nil)
+
+;; use hex editor for binary files, instead of jacking up the terminal
+;; from https://emacs.stackexchange.com/a/10297/14204
+(defun buffer-binary-p (&optional buffer)
+  "Return whether BUFFER or the current buffer is binary.
+
+A binary buffer is defined as containing at least on null byte.
+
+Returns either nil, or the position of the first null byte."
+  (with-current-buffer (or buffer (current-buffer))
+    (save-excursion
+      (goto-char (point-min))
+      (search-forward (string ?\x00) nil t 1))))
+
+(defun hexl-if-binary ()
+  "If `hexl-mode' is not already active, and the current buffer
+is binary, activate `hexl-mode'."
+  (interactive)
+  (unless (eq major-mode 'hexl-mode)
+    (when (buffer-binary-p)
+      (hexl-mode))))
+(add-hook 'find-file-hooks 'hexl-if-binary)
+
+
+;; transparency
+
+;;(set-frame-parameter (selected-frame) 'alpha '(<active> . <inactive>))
+;;(set-frame-parameter (selected-frame) 'alpha <both>)
+
+
+;; (global-set-key (kbd "C-c t") 'toggle-transparency)
+
+;; (add-to-list 'initial-frame-alist '(alpha 85 95))
+;; (add-to-list 'default-frame-alist '(alpha 85 95))
+;; (set-frame-parameter nil 'alpha '(85 95))
+
+;; (defun on-after-init ()
+;;   (unless (display-graphic-p (selected-frame))
+;;     (set-face-background 'default "unspecified-bg" (selected-frame))))
+
+;; (add-hook 'window-setup-hook 'on-after-init)
+
+(desktop-save-mode 1)
+
+;; (load-theme 'poet t)
+
+(defun apply-light-mode ()
+	;; (load-theme 'solarized-light t)
+	(load-theme 'leuven t)
+	(enable-theme 'leuven)
+	(custom-set-faces
+	 '(my-tab-face ((((class color)) (:foreground "#bbbbb5"))) t))
+	(set-face-background 'default "#eeeee5" (selected-frame))
+	;; (setq sml/theme 'respectful)
+	;; (setq sml/theme 'light)
+	;; (setq sml/theme 'light-powerline)
+	;; (sml/setup) ;; smart-mode-line
+	)
+
+(defun apply-dark-mode ()
+	(load-theme 'afternoon t)
+	(enable-theme 'afternoon)
+	(custom-set-faces
+	 '(my-tab-face ((((class color)) (:foreground "#3f3f3fe"))) t))
+	;; (set-face-background 'default "#030305" (selected-frame))
+	(set-face-background 'default "#050507" (selected-frame))
+	;; (setq sml/theme 'powerline)
+	;; (setq sml/theme 'dark)
+	;; (sml/setup) ;; smart-mode-line
+	)
+
+(setq dark-mode 't)
+
+(defun apply-theme ()
+	(if (eq dark-mode 't)
+		(apply-dark-mode)
+		(apply-light-mode)))
+
+
+;; (set-face-background 'default "unspecified-bg" (selected-frame))
+
+;; (add-hook 'after-init-hook #'apply-theme)
+
+(defun on-after-init ()
+	(apply-theme) ;; we need this despite the outer (apply-theme), because the background color gets reset on the first run
+	)
+
+(add-hook 'window-setup-hook 'on-after-init)
+
+(apply-theme) ;; we still want this, even with on-after-init, so we can change dark-modoe and reload this file without restarting
+
+(require 'telephone-line)
+(telephone-line-mode 1)
+
+(set-display-table-slot standard-display-table 'vertical-border (make-glyph-code ?█))
+
+(display-time-mode 1)
+(setq display-time-format "%H:%M")
+
+;; (setq mode-line-front-space ?x)
+;; (setq mode-line-end-space ?x)
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(ispell-dictionary nil)
+ '(package-selected-packages
+	 '(cmake-mode smart-mode-line-powerline-theme poet-theme leuven-theme go-mode clang-format afternoon-theme)))
